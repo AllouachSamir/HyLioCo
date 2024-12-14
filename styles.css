@@ -1,0 +1,53 @@
+/* CSS général */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif; /* Définit une police par défaut */
+    box-sizing: border-box; /* Inclus les bordures et les marges dans les dimensions des éléments */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh; /* Ajuste la hauteur de la page à la fenêtre */
+}
+
+/* Suppression des bordures */
+* {
+    border: 0;
+    box-shadow: none;
+}
+
+/* Logo adaptatif */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+.logo {
+    
+    height: auto; /* Maintient les proportions de l'image */
+}
+
+/* Navigation centré */
+nav ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+nav ul li {
+    display: inline-block;
+    margin: 0 15px; /* Espacement entre les liens */
+}
+
+nav ul li a.contact-link {
+    text-decoration: none;
+    color: #0d3512; /* Couleur de texte par défaut */
+    font-weight: bold;
+}
+
+nav ul li a.contact-link:hover {
+    color: #0d3512; /* Nouvelle couleur lors du survol */
+}
