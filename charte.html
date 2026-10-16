@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charte graphique — HyLioCo</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .charte-tete {
+            padding: 56px 20px 48px;
+            background: var(--marine);
+            color: var(--ivoire);
+            text-align: center;
+        }
+        .charte-tete img { width: 120px; }
+        .charte-tete h1 { margin: 18px 0 4px; font-size: clamp(30px, 5vw, 44px); font-weight: 800; }
+        .charte-tete p { margin: 0; color: var(--texte-clair); }
+        .charte { max-width: 1040px; margin: 0 auto; padding: 24px 20px 72px; }
+        .charte h2 { margin: 48px 0 6px; font-size: 28px; font-weight: 800; }
+        .charte h2 + p { margin: 0 0 22px; color: var(--texte-doux); }
+        .grille { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
+        .carte { border-radius: var(--rayon); overflow: hidden; background: #fff; box-shadow: var(--ombre); border: 1px solid rgba(10, 35, 66, 0.08); }
+        .carte-visuel { display: grid; place-items: center; height: 220px; padding: 28px; }
+        .carte-visuel img { max-width: 100%; max-height: 100%; }
+        .carte-infos { padding: 14px 18px 18px; font-size: 15px; }
+        .carte-infos strong { display: block; font-size: 17px; }
+        .carte-infos span { color: var(--texte-doux); }
+        .carte-infos a { font-weight: 600; color: var(--roi); }
+        .fond-ivoire { background: var(--ivoire); }
+        .fond-marine { background: var(--marine); }
+        .nuance { height: 120px; box-shadow: inset 0 -1px 0 rgba(10, 35, 66, 0.08); }
+        .typo { display: grid; gap: 14px; padding: 26px; border-radius: var(--rayon); background: #fff; box-shadow: var(--ombre); }
+        .typo p { margin: 0; }
+        .typo small { display: block; color: var(--texte-doux); font-size: 13px; }
+        .regles { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; padding: 0; list-style: none; }
+        .regles li { padding: 18px 20px; border-radius: 14px; background: #fff; border-left: 4px solid var(--or); box-shadow: var(--ombre); }
+        .regles li.non { border-left-color: #C93C3C; }
+        .retour { display: inline-block; margin-top: 48px; font-weight: 700; color: var(--roi); }
+    </style>
+</head>
+<body>
+    <header class="charte-tete">
+        <img src="assets/logo-inverse.svg" alt="HyLioCo">
+        <h1>Charte graphique</h1>
+        <p>Palette « Royal » · version 1 · 2026</p>
+    </header>
+
+    <main class="charte">
+        <h2>Logo</h2>
+        <p>Le lion dans son bouclier, la crinière d'or et le nom HyLioCo. Fichiers vectoriels (SVG) : nets à toutes les tailles.</p>
+        <div class="grille">
+            <div class="carte">
+                <div class="carte-visuel fond-ivoire"><img src="assets/logo.svg" alt="Logo principal"></div>
+                <div class="carte-infos"><strong>Logo principal</strong><span>Sur fond clair</span><br><a href="assets/logo.svg" download>Télécharger le SVG</a></div>
+            </div>
+            <div class="carte">
+                <div class="carte-visuel fond-marine"><img src="assets/logo-inverse.svg" alt="Logo inversé"></div>
+                <div class="carte-infos"><strong>Logo inversé</strong><span>Sur fond marine ou sombre</span><br><a href="assets/logo-inverse.svg" download>Télécharger le SVG</a></div>
+            </div>
+            <div class="carte">
+                <div class="carte-visuel fond-ivoire"><img src="assets/embleme.svg" alt="Emblème"></div>
+                <div class="carte-infos"><strong>Emblème</strong><span>Petits formats, réseaux sociaux</span><br><a href="assets/embleme.svg" download>SVG clair</a> · <a href="assets/embleme-inverse.svg" download>SVG sombre</a></div>
+            </div>
+            <div class="carte">
+                <div class="carte-visuel fond-ivoire"><img src="assets/favicon.svg" alt="Icône" style="width:110px"></div>
+                <div class="carte-infos"><strong>Icône</strong><span>Onglet du navigateur, application</span><br><a href="assets/favicon.svg" download>Télécharger le SVG</a></div>
+            </div>
+        </div>
+
+        <h2>Couleurs</h2>
+        <p>Le marine porte la marque, l'or la met en valeur. L'or reste un accent : jamais en grande surface derrière du texte.</p>
+        <div class="grille">
+            <div class="carte">
+                <div class="nuance" style="background:#0A2342"></div>
+                <div class="carte-infos"><strong>Marine</strong><span>#0A2342 · RVB 10 35 66</span><br>Couleur principale : logo, titres, fonds</div>
+            </div>
+            <div class="carte">
+                <div class="nuance" style="background:#F5B700"></div>
+                <div class="carte-infos"><strong>Or</strong><span>#F5B700 · RVB 245 183 0</span><br>Accent : crinière, boutons, points forts</div>
+            </div>
+            <div class="carte">
+                <div class="nuance" style="background:#F7F3EA"></div>
+                <div class="carte-infos"><strong>Ivoire</strong><span>#F7F3EA · RVB 247 243 234</span><br>Fond clair, texte sur marine</div>
+            </div>
+            <div class="carte">
+                <div class="nuance" style="background:#1C4A7A"></div>
+                <div class="carte-infos"><strong>Bleu roi</strong><span>#1C4A7A · RVB 28 74 122</span><br>Couleur secondaire, liens, détails</div>
+            </div>
+            <div class="carte">
+                <div class="nuance" style="background:#061528"></div>
+                <div class="carte-infos"><strong>Nuit</strong><span>#061528 · RVB 6 21 40</span><br>Dégradés et fonds très sombres</div>
+            </div>
+        </div>
+
+        <h2>Typographie</h2>
+        <p>Outfit, une police géométrique et arrondie, cousine du logo. Gratuite sur Google Fonts.</p>
+        <div class="typo">
+            <p style="font-size:44px;font-weight:800;line-height:1.1">Quelque chose se prépare.<small>Titres · Outfit ExtraBold (800)</small></p>
+            <p style="font-size:22px;font-weight:600">Une nouvelle marque arrive bientôt.<small>Sous-titres et boutons · Outfit SemiBold (600)</small></p>
+            <p style="font-size:17px">Le texte courant reste simple et lisible, en phrases courtes. On vouvoie le visiteur.<small>Texte · Outfit Regular (400)</small></p>
+        </div>
+
+        <h2>Règles d'usage</h2>
+        <p>Pour que la marque reste reconnaissable partout.</p>
+        <ul class="regles">
+            <li>Laisser autour du logo un espace libre au moins égal à la hauteur du « H ».</li>
+            <li>Logo principal sur fond clair, logo inversé sur fond marine ou sombre.</li>
+            <li>Taille minimale : 120 px de large pour le logo complet, 24 px pour l'emblème.</li>
+            <li class="non">Ne pas déformer, pivoter ni recolorer le logo hors de la palette.</li>
+            <li class="non">Ne pas poser le logo sur une photo chargée sans fond uni.</li>
+            <li class="non">Ne pas utiliser l'or pour du texte long ou sur fond ivoire.</li>
+        </ul>
+
+        <a class="retour" href="./">← Retour au site</a>
+    </main>
+</body>
+</html>
