@@ -27,7 +27,8 @@
   /* ---------- Monde ---------- */
   const H = 300;            // hauteur du monde (unités) ; la largeur dépend de l'écran
   const GROUND = 252;
-  const LION_W = 72, LION_H = 56;
+  const LION_S = 0.5;      // échelle du lion (dessiné dans une boîte 207 × 136, voir lion.js)
+  const LION_W = 207 * LION_S, LION_H = 136 * LION_S;
   const GRAVITY = 2500, JUMP_V = 820, JUMP_CUT = 360, MIN_RISE = 50, FAST_FALL = 4000;
   const MOVE_SPEED = 250;
   const MAX_LIVES = 3;
@@ -64,11 +65,12 @@
   let jumpHeld = false;
 
   function reset() {
-    lion = { x: 60, y: GROUND - LION_H, vy: 0, ground: true, jumpFrom: 0, phase: 0 };
+    lion = { x: 40, y: GROUND - LION_H, vy: 0, ground: true, jumpFrom: 0, phase: 0, air: 0,
+      strands: window.HyLion ? HyLion.makeStrands() : [], simAcc: 0 };
     obstacles = []; meteors = []; coins = []; boxes = []; craters = [];
     particles = []; floaters = [];
     effects = {};
-    speed = 260; score = 0; lives = MAX_LIVES;
+    speed = 260 * speedK(); score = 0; lives = MAX_LIVES;
     invulnUntil = 0; shakeUntil = 0; newRecord = false;
     gapObstacle = 320; timerMeteor = 5; timerCoins = 1.2; timerBox = 8;
     shower = 0; showerTimer = 0;
@@ -113,6 +115,8 @@
     if (!running) draw();
   }
   const maxLionX = () => Math.max(60, W * 0.72 - LION_W);
+  // sur un écran étroit on voit moins loin : le monde défile un peu moins vite
+  const speedK = () => clamp(W / 700, 0.62, 1);
 
   /* ---------- Apparitions ---------- */
   const OBSTACLES = [
@@ -224,6 +228,7 @@
     }
     lives--;
     invulnUntil = t + 1.6;
+    if (navigator.vibrate) navigator.vibrate(70);
     floater(x, y - 10, '−1 vie', C.rouge);
     if (lives <= 0) gameOver();
   }
@@ -248,11 +253,27 @@
     return (cx - nx) ** 2 + (cy - ny) ** 2 < r * r;
   }
   function lionBoxes() {
-    // corps + tête, un peu plus petits que le dessin : le jeu reste tolérant
+    // corps, tête et pattes, un peu plus petits que le dessin : le jeu reste tolérant
+    const k = LION_S;
     return [
-      { x: lion.x + 10, y: lion.y + 22, w: 46, h: 27 },
-      { x: lion.x + 42, y: lion.y + 4, w: 28, h: 26 },
+      { x: lion.x + 30 * k, y: lion.y + 50 * k, w: 120 * k, h: 38 * k },
+      { x: lion.x + 150 * k, y: lion.y + 12 * k, w: 54 * k, h: 56 * k },
+      { x: lion.x + 44 * k, y: lion.y + 88 * k, w: 116 * k, h: 44 * k },
     ];
+  }
+
+  // pose (au sol / en l'air) et mèches dorées qui suivent les mouvements
+  function animateLion(dt, wind) {
+    lion.air += ((lion.ground ? 0 : 1) - lion.air) * Math.min(1, dt * 14);
+    if (!window.HyLion) return;
+    const bob = Math.abs(Math.sin(lion.phase)) * 1.5 * (1 - lion.air);
+    const ax = lion.x + HyLion.ANCHOR.x * LION_S;
+    const ay = lion.y + (HyLion.ANCHOR.y - bob) * LION_S;
+    lion.simAcc = Math.min(lion.simAcc + dt, 0.1);
+    while (lion.simAcc >= 1 / 60) {
+      HyLion.stepStrands(lion.strands, ax, ay, LION_S, wind, t);
+      lion.simAcc -= 1 / 60;
+    }
   }
 
   /* ---------- Mise à jour ---------- */
@@ -264,10 +285,19 @@
     for (const f of floaters) { f.life -= dt; f.y -= 34 * dt; }
     floaters = floaters.filter(f => f.life > 0);
 
-    if (state === 'ready') { scrollScenery(70 * dt); lion.phase += dt * 9; return; }
+    if (state === 'ready') { scrollScenery(70 * dt); lion.phase += dt * 6; animateLion(dt, 170); return; }
+    if (state === 'over') {
+      // le lion se pose au sol s'il était en plein saut
+      if (!lion.ground) {
+        lion.vy += GRAVITY * dt; lion.y += lion.vy * dt;
+        if (lion.y >= GROUND - LION_H) { lion.y = GROUND - LION_H; lion.vy = 0; lion.ground = true; }
+      }
+      animateLion(dt, 40);
+      return;
+    }
     if (state !== 'running') return;
 
-    speed = Math.min(speed + 5 * dt, 620);
+    speed = Math.min(speed + 5 * speedK() * dt, 620 * speedK());
     const dx = speed * dt;
     const mult = has('x2') ? 2 : 1;
     score += dx / 12 * mult;
@@ -278,8 +308,8 @@
     if (has('etourdi')) dir = -dir;
     const slow = has('ralenti') ? 0.5 : 1;
     lion.x = clamp(lion.x + dir * MOVE_SPEED * slow * dt, 8, maxLionX());
-    lion.phase += dt * (7 + speed / 70) * (dir < 0 ? 0.6 : dir > 0 ? 1.3 : 1) * slow;
-    if (has('ralenti') && lion.ground && Math.random() < 0.3) dust(lion.x + 30, GROUND, 1);
+    lion.phase += dt * (5 + speed / 90) * (dir < 0 ? 0.6 : dir > 0 ? 1.3 : 1) * slow;
+    if (has('ralenti') && lion.ground && Math.random() < 0.3) dust(lion.x + LION_W * 0.4, GROUND, 1);
 
     // saut
     if (!lion.ground) {
@@ -291,6 +321,8 @@
         dust(lion.x + LION_W / 2, GROUND, 6);
       }
     }
+
+    animateLion(dt, speed * 0.9 + dir * 180);
 
     // apparitions
     if ((gapObstacle -= dx) <= 0) spawnObstacle();
@@ -587,104 +619,36 @@
 
   /* ---------- Dessin : le lion ---------- */
   function drawLion() {
+    if (!window.HyLion) return;
     const dead = state === 'over';
-    const ground = lion.ground;
-    const bob = ground && !dead ? Math.abs(Math.sin(lion.phase)) * 2 : 0;
     const blink = invulnUntil > t && !dead && Math.floor(t * 12) % 2;
-
+    ctx.save();
+    if (blink) ctx.globalAlpha = 0.4;
     ctx.save();
     ctx.translate(lion.x, lion.y);
-    if (blink) ctx.globalAlpha = 0.35;
-
-    const swing = ground && !dead ? 0.55 : 0;
-    const a = Math.sin(lion.phase) * swing;
-    const tuckBack = !ground && !dead ? -0.75 : 0;
-    const tuckFront = !ground && !dead ? 0.75 : 0;
-    const leg = (hx, hy, ang, color) => {
-      ctx.save();
-      ctx.translate(hx, hy);
-      ctx.rotate(ang);
-      ctx.fillStyle = color;
-      rr(-3.5, -2, 7, 20, 3.5); ctx.fill();
-      rr(-4, 13, 10, 5.5, 2.75); ctx.fill();
-      ctx.restore();
-    };
-
-    // pattes arrière-plan
-    leg(20, 36 - bob, tuckBack - a, C.roi);
-    leg(51, 36 - bob, tuckFront + a, C.roi);
-
-    // queue
-    const tw = dead ? 0 : Math.sin(t * 6) * 4;
-    ctx.strokeStyle = C.marine; ctx.lineWidth = 4; ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(12, 28 - bob);
-    ctx.quadraticCurveTo(-2, 30 + tw, -4, 14 + tw);
-    ctx.stroke();
-    ctx.fillStyle = C.or;
-    circle(-4, 12 + tw, 5); ctx.fill();
-
-    // corps
-    ctx.fillStyle = C.marine;
-    ctx.beginPath(); ctx.ellipse(34, 32 - bob, 27, 13, 0, 0, Math.PI * 2); ctx.fill();
-
-    // pattes avant-plan
-    leg(16, 36 - bob, tuckBack + a, C.marine);
-    leg(47, 36 - bob, tuckFront - a, C.marine);
-
-    // crinière
-    const hx = 56, hy = 20 - bob;
-    ctx.fillStyle = C.or;
-    ctx.beginPath();
-    ctx.arc(hx - 2, hy, 16, 0, Math.PI * 2);
-    for (let i = 0; i < 10; i++) {
-      const an = (i / 10) * Math.PI * 2 + 0.3;
-      const cx = hx - 2 + Math.cos(an) * 14, cy = hy + Math.sin(an) * 14;
-      ctx.moveTo(cx + 6.5, cy);
-      ctx.arc(cx, cy, 6.5, 0, Math.PI * 2);
-    }
-    ctx.fill();
-
-    // tête
-    ctx.fillStyle = C.marine;
-    circle(hx - 5, hy - 12, 4); ctx.fill();          // oreille
-    circle(hx + 2, hy + 1, 11); ctx.fill();
-    rr(hx + 6, hy - 1, 14, 11, 5); ctx.fill();        // museau
-
-    // œil
-    if (dead) {
-      ctx.strokeStyle = C.ivoire; ctx.lineWidth = 1.8;
-      ctx.beginPath();
-      ctx.moveTo(hx + 3.5, hy - 5.5); ctx.lineTo(hx + 8.5, hy - 0.5);
-      ctx.moveTo(hx + 8.5, hy - 5.5); ctx.lineTo(hx + 3.5, hy - 0.5);
-      ctx.stroke();
-    } else {
-      ctx.fillStyle = C.ivoire;
-      circle(hx + 6, hy - 3, 2.7); ctx.fill();
-      ctx.fillStyle = C.marine;
-      circle(hx + 6.8, hy - 3, 1.3); ctx.fill();
-    }
-    // bouche
-    ctx.strokeStyle = C.ivoire; ctx.lineWidth = 1.4;
-    ctx.beginPath(); ctx.moveTo(hx + 12, hy + 7); ctx.lineTo(hx + 18, hy + 6.5); ctx.stroke();
+    ctx.scale(LION_S, LION_S);
+    HyLion.drawBody(ctx, lion.phase, lion.air);
+    ctx.restore();
+    HyLion.drawStrands(ctx, lion.strands, LION_S);
+    ctx.restore();
 
     // étourdi : étoiles autour de la tête
     if (has('etourdi') && !dead) {
       ctx.fillStyle = C.or;
+      const hx = lion.x + 186 * LION_S, hy = lion.y - 4;
       for (let i = 0; i < 3; i++) {
         const an = t * 5 + i * 2.1;
-        star(hx + Math.cos(an) * 16, hy - 22 + Math.sin(an) * 4, 3.5);
+        star(hx + Math.cos(an) * 16, hy + Math.sin(an) * 4, 3.5);
       }
     }
-    ctx.restore();
-
     // bouclier
     if (has('bouclier') && !dead) {
       const p = 0.55 + 0.25 * Math.sin(t * 6);
       ctx.fillStyle = 'rgba(245,183,0,0.10)';
       ctx.strokeStyle = `rgba(245,183,0,${p})`;
       ctx.lineWidth = 2.5;
-      ctx.beginPath(); ctx.ellipse(lion.x + 34, lion.y + 26, 48, 38, 0, 0, Math.PI * 2);
+      ctx.beginPath();
+      ctx.ellipse(lion.x + LION_W / 2, lion.y + LION_H / 2, LION_W * 0.62, LION_H * 0.75, 0, 0, Math.PI * 2);
       ctx.fill(); ctx.stroke();
     }
   }
@@ -889,11 +853,14 @@
       const dirKey = action === 'gauche' ? 'left' : 'right';
       btn.addEventListener('pointerdown', e => {
         e.preventDefault();
+        btn.classList.add('actif');
+        if (navigator.vibrate) navigator.vibrate(8);
         try { btn.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
         if (action === 'saut' || state !== 'running') jumpPress();
         else keys[dirKey] = true;
       });
       const up = () => {
+        btn.classList.remove('actif');
         if (action === 'saut') jumpRelease();
         else keys[dirKey] = false;
       };

@@ -38,6 +38,10 @@
             <a class="bouton bouton-or" href="#jeu">Jouer en attendant</a>
             <a class="bouton bouton-contour" href="mailto:contact@hylioco.com?subject=Pr%C3%A9venez-moi%20du%20lancement%20HyLioCo">Être prévenu du lancement</a>
         </div>
+        <p class="compteur" id="compteur" hidden>
+            <span class="compteur-point" aria-hidden="true"></span>
+            <span><strong id="compteur-nombre">0</strong> <span id="compteur-texte">visiteurs attendent déjà le lancement</span></span>
+        </p>
         <a class="defiler" href="#jeu" aria-label="Aller au jeu"><span></span></a>
     </header>
 
@@ -79,6 +83,8 @@
         <p>© 2026 HyLioCo</p>
     </footer>
 
+    <script src="visites.js" defer></script>
+    <script src="lion.js" defer></script>
     <script src="game.js" defer></script>
 </body>
 </html>
