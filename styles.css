@@ -1,61 +1,504 @@
-/* CSS général */
-body, html {
+/* =========================================================
+   HyLioCo — charte graphique « Royal »
+   ========================================================= */
+:root {
+    --marine: #0A2342;
+    --nuit: #061528;
+    --roi: #1C4A7A;
+    --or: #F5B700;
+    --or-fonce: #B98600;
+    --ivoire: #F7F3EA;
+    --sable: #EBDDBE;
+
+    --texte-clair: rgba(247, 243, 234, 0.78);
+    --texte-doux: #3D5573;
+
+    --police: "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    --rayon: 18px;
+    --ombre: 0 24px 60px -30px rgba(10, 35, 66, 0.45);
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
     margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif; /* Définit une police par défaut */
-    box-sizing: border-box; /* Inclus les bordures et les marges dans les dimensions des éléments */
+    font-family: var(--police);
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--marine);
+    background: var(--ivoire);
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    color: inherit;
+}
+
+:focus-visible {
+    outline: 3px solid var(--or);
+    outline-offset: 3px;
+}
+
+/* ---------- Hero ---------- */
+.hero {
+    position: relative;
+    isolation: isolate;
+    min-height: 100vh;
+    min-height: 100svh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh; /* Ajuste la hauteur de la page à la fenêtre */
-    background-color:#fefefe
-}
-
-/* Suppression des bordures */
-* {
-    border: 0;
-    box-shadow: none;
-}
-
-/* Logo adaptatif */
-.container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
+    padding: 56px 20px 104px;
+    text-align: center;
+    color: var(--ivoire);
+    background:
+        radial-gradient(60% 50% at 50% 32%, rgba(245, 183, 0, 0.10), transparent 70%),
+        radial-gradient(120% 90% at 50% 25%, #133A66 0%, var(--marine) 45%, var(--nuit) 100%);
+    overflow: hidden;
 }
 
 .logo {
-    
-    height: auto; /* Maintient les proportions de l'image */
+    position: relative;
+    margin: 0 0 28px;
+    width: clamp(190px, 34vmin, 330px);
+    line-height: 0;
 }
 
-/* Navigation centré */
-nav ul {
-    list-style-type: none;
-    padding: 0;
+.logo::before {
+    content: "";
+    position: absolute;
+    inset: -30% -25% -10%;
+    z-index: -1;
+    background: radial-gradient(circle at 50% 38%, rgba(245, 183, 0, 0.28), transparent 60%);
+    animation: halo 5s ease-in-out 2.4s infinite both;
 }
 
-nav ul li {
-    display: inline-block;
-    margin: 0 15px; /* Espacement entre les liens */
-}
-
-nav ul li a.contact-link {
-    text-decoration: none;
-    color: #062341; /* Couleur de texte par défaut */
-    font-weight: bold;
-}
-
-nav ul li a.contact-link:hover {
-    color: #ffc714; /* Nouvelle couleur lors du survol */
-}
-
-
-.logo video {
-    max-width: 100%;
-    height: auto;
+.logo svg {
     display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+/* Animation du logo : le bouclier se dessine, la crinière balaie, le nom apparaît */
+.logo-bouclier {
+    fill: var(--ivoire);
+    stroke: var(--ivoire);
+    stroke-width: 2.5;
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: 0;
+    fill-opacity: 1;
+    stroke-opacity: 0;
+    animation:
+        tracer 1.5s cubic-bezier(0.65, 0, 0.35, 1) 0.15s both,
+        remplir 0.7s ease-out 1.3s both;
+}
+
+.logo-criniere {
+    fill: var(--or);
+    transform-box: fill-box;
+    transform-origin: 0% 100%;
+    animation: balayer 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 1.35s both;
+}
+
+.logo-nom {
+    fill: var(--ivoire);
+    transform-box: fill-box;
+    animation: monter 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 1.75s both;
+}
+
+@keyframes tracer {
+    from { stroke-dashoffset: 1; }
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes remplir {
+    from { fill-opacity: 0; stroke-opacity: 1; }
+    to { fill-opacity: 1; stroke-opacity: 0; }
+}
+
+@keyframes balayer {
+    from { clip-path: inset(0 100% 0 0); transform: translateY(12%) rotate(-6deg); }
+    to { clip-path: inset(0 0 0 0); transform: none; }
+}
+
+@keyframes monter {
+    from { opacity: 0; transform: translateY(35%); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes halo {
+    0%, 100% { opacity: 0.55; transform: scale(0.96); }
+    50% { opacity: 1; transform: scale(1.04); }
+}
+
+@keyframes apparaitre {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: none; }
+}
+
+.surtitre,
+.accroche,
+.intro,
+.actions {
+    animation: apparaitre 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.surtitre { animation-delay: 2.1s; }
+.accroche { animation-delay: 2.2s; }
+.intro { animation-delay: 2.3s; }
+.actions { animation-delay: 2.4s; }
+
+.surtitre {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 10px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--or);
+}
+
+.surtitre::before,
+.surtitre::after {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.6;
+}
+
+.accroche {
+    margin: 0 0 12px;
+    font-size: clamp(30px, 5.2vw, 52px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+}
+
+.intro {
+    max-width: 34em;
+    margin: 0 0 30px;
+    color: var(--texte-clair);
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+}
+
+.bouton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 12px 26px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 16px;
+    text-decoration: none;
+    transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bouton:hover {
+    transform: translateY(-2px);
+}
+
+.bouton-or {
+    background: var(--or);
+    color: var(--marine);
+    box-shadow: 0 10px 30px -12px rgba(245, 183, 0, 0.8);
+}
+
+.bouton-or:hover {
+    background: #FFC52E;
+}
+
+.bouton-contour {
+    border: 2px solid rgba(247, 243, 234, 0.35);
+    color: var(--ivoire);
+}
+
+.bouton-contour:hover {
+    border-color: var(--or);
+    color: var(--or);
+}
+
+.defiler {
+    position: absolute;
+    bottom: 28px;
+    left: 50%;
+    width: 26px;
+    height: 42px;
+    margin-left: -13px;
+    border: 2px solid rgba(247, 243, 234, 0.4);
+    border-radius: 14px;
+    animation: apparaitre 0.7s ease 2.8s both;
+}
+
+.defiler span {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    width: 4px;
+    height: 8px;
+    margin-left: -2px;
+    border-radius: 2px;
+    background: var(--or);
+    animation: molette 1.8s ease-in-out 3s infinite;
+}
+
+@keyframes molette {
+    0% { opacity: 0; transform: translateY(0); }
+    30% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(14px); }
+}
+
+/* ---------- Jeu ---------- */
+.jeu {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 88px 20px 72px;
+    text-align: center;
+}
+
+.jeu h2 {
+    margin: 0 0 10px;
+    font-size: clamp(28px, 4.2vw, 40px);
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+.jeu-texte {
+    max-width: 36em;
+    margin: 0 auto 32px;
+    color: var(--texte-doux);
+}
+
+.jeu-cadre {
+    padding: 10px;
+    border-radius: var(--rayon);
+    background: #FFFDF8;
+    border: 1px solid rgba(10, 35, 66, 0.10);
+    box-shadow: var(--ombre);
+}
+
+#jeu-canvas {
+    display: block;
+    width: 100%;
+    height: clamp(240px, 42vw, 420px);
+    border-radius: calc(var(--rayon) - 8px);
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+}
+
+/* Boutons tactiles : affichés seulement sur écran tactile */
+.jeu-tactile {
+    display: none;
+    grid-template-columns: 64px 64px 1fr;
+    gap: 10px;
+    margin-top: 10px;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+@media (pointer: coarse) {
+    .jeu-tactile {
+        display: grid;
+    }
+}
+
+.jeu-tactile button {
+    display: grid;
+    place-items: center;
+    height: 60px;
+    border: 0;
+    border-radius: 14px;
+    background: var(--marine);
+    color: var(--ivoire);
+    font: 700 17px var(--police);
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.jeu-tactile button:active {
+    background: var(--roi);
+}
+
+.jeu-tactile svg {
+    width: 26px;
+    height: 26px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.jeu-tactile .jeu-saut {
+    background: var(--or);
+    color: var(--marine);
+}
+
+.jeu-tactile .jeu-saut:active {
+    background: #FFC52E;
+}
+
+.jeu-bas {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 24px;
+    margin-top: 18px;
+}
+
+.jeu-record {
+    margin: 0;
+    font-weight: 600;
+}
+
+.jeu-record strong {
+    display: inline-block;
+    min-width: 2ch;
+    padding: 2px 12px;
+    border-radius: 999px;
+    background: var(--marine);
+    color: var(--or);
+    font-weight: 800;
+}
+
+.jeu-message {
+    color: var(--or-fonce);
+    font-weight: 800;
+}
+
+.jeu-aide,
+.jeu-legende {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 14px;
+    color: var(--texte-doux);
+}
+
+@media (pointer: coarse) {
+    .jeu-aide {
+        display: none;
+    }
+}
+
+.jeu-legende {
+    justify-content: center;
+    margin-top: 28px;
+}
+
+.jeu-legende li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+kbd {
+    display: inline-block;
+    min-width: 26px;
+    padding: 1px 7px;
+    border: 1px solid rgba(10, 35, 66, 0.2);
+    border-bottom-width: 2px;
+    border-radius: 6px;
+    background: #fff;
+    font: 600 13px var(--police);
+    color: var(--marine);
+    text-align: center;
+}
+
+.pastille {
+    display: inline-grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    flex: none;
+}
+
+.pastille-or {
+    background: var(--or);
+    box-shadow: inset 0 0 0 3px #FFD24D, inset 0 0 0 5px var(--or-fonce);
+}
+
+.pastille-boite {
+    border-radius: 5px;
+    background: var(--marine);
+    box-shadow: inset 0 0 0 2px var(--or);
+    color: var(--or);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.pastille-rouge {
+    background: radial-gradient(circle at 40% 40%, #FF7A1A, #C93C3C);
+}
+
+/* ---------- Pied de page ---------- */
+.pied {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 44px 20px;
+    background: var(--marine);
+    color: var(--texte-clair);
+    text-align: center;
+}
+
+.pied img {
+    display: block;
+}
+
+.pied-contact {
+    color: var(--ivoire);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.pied-contact:hover {
+    color: var(--or);
+}
+
+.pied p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* ---------- Mouvement réduit ---------- */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
+    }
 }
