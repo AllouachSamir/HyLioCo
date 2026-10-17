@@ -47,32 +47,92 @@
     <main>
         <section id="jeu" class="jeu" aria-labelledby="jeu-titre">
             <h2 id="jeu-titre">En attendant le lancement…</h2>
-            <p class="jeu-texte">Aidez le lion à traverser la savane : sautez les obstacles, esquivez les météorites, ramassez les récompenses… et méfiez-vous des pièges.</p>
-            <div class="jeu-cadre">
-                <canvas id="jeu-canvas" tabindex="0" aria-label="Mini-jeu : le lion traverse la savane. Flèches gauche et droite pour se déplacer, Espace ou flèche du haut pour sauter."></canvas>
-                <div class="jeu-tactile">
-                    <button type="button" data-action="gauche" aria-label="Aller à gauche">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+            <p class="jeu-texte">Aidez le lion à traverser la savane, du soleil couchant à la nuit étoilée. Jusqu’où irez-vous&nbsp;?</p>
+            <div class="jeu-cadre" id="jeu-cadre">
+                <canvas id="jeu-canvas" tabindex="0" aria-label="Mini-jeu La traversée du lion. Espace, flèche du haut ou toucher l’écran pour sauter ; appuyer de nouveau en l’air pour un double saut."></canvas>
+
+                <div class="jeu-hud" aria-hidden="true">
+                    <div class="hud-gauche">
+                        <div class="hud-pilule hud-vies" id="hud-vies"></div>
+                        <div class="hud-pilule hud-pieces"><span class="piece-icone"></span><span id="hud-pieces">0</span></div>
+                        <div class="hud-effets" id="hud-effets"></div>
+                    </div>
+                    <div class="hud-centre">
+                        <div class="hud-score" id="hud-score">0</div>
+                        <div class="hud-record">Record <span id="hud-record">0</span></div>
+                    </div>
+                </div>
+
+                <div class="jeu-outils">
+                    <button type="button" class="outil" id="btn-son" aria-label="Couper le son" aria-pressed="false">
+                        <svg class="icone-son" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="ondes" d="M16 9a4 4 0 010 6M18.5 6.5a7.5 7.5 0 010 11"/><path class="barre" d="M16 9l6 6M22 9l-6 6"/></svg>
                     </button>
-                    <button type="button" data-action="droite" aria-label="Aller à droite">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+                    <button type="button" class="outil" id="btn-pause" aria-label="Mettre en pause">
+                        <svg class="icone-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>
+                        <svg class="icone-reprendre" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg>
                     </button>
-                    <button type="button" data-action="saut" class="jeu-saut">Sauter</button>
+                    <button type="button" class="outil" id="btn-plein-ecran" aria-label="Plein écran">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+                    </button>
+                </div>
+
+                <div class="jeu-banniere" id="jeu-banniere" role="status" aria-live="polite"></div>
+                <div class="jeu-toast" id="jeu-toast" role="status" aria-live="polite"></div>
+
+                <div class="jeu-ecran" id="ecran-debut">
+                    <div class="ecran-contenu">
+                        <p class="ecran-surtitre">Mini-jeu</p>
+                        <h3 class="ecran-titre">La traversée du lion</h3>
+                        <ul class="ecran-regles">
+                            <li><span class="regle-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20V5M6 11l6-6 6 6"/></svg></span><span><strong>Sautez</strong> : Espace, ↑ ou touchez l’écran</span></li>
+                            <li><span class="regle-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 13l6-6 6 6M6 19l6-6 6 6"/></svg></span><span><strong>Double saut</strong> : appuyez à nouveau en l’air</span></li>
+                            <li><span class="regle-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M10 9v6M14 9v6M10 12h4"/></svg></span><span>Ramassez l’or et ouvrez les boîtes mystère… gare aux pièges et aux météorites&nbsp;!</span></li>
+                        </ul>
+                        <button type="button" class="bouton bouton-or bouton-jeu" id="btn-jouer">Jouer</button>
+                    </div>
+                </div>
+
+                <div class="jeu-ecran" id="ecran-pause" hidden>
+                    <div class="ecran-contenu">
+                        <h3 class="ecran-titre">Pause</h3>
+                        <button type="button" class="bouton bouton-or bouton-jeu" id="btn-reprendre">Reprendre</button>
+                    </div>
+                </div>
+
+                <div class="jeu-ecran" id="ecran-fin" hidden>
+                    <div class="ecran-contenu">
+                        <h3 class="ecran-titre">Fin de la traversée</h3>
+                        <p class="fin-nouveau" id="fin-nouveau" hidden>Nouveau record&nbsp;!</p>
+                        <p class="fin-score"><strong id="fin-score">0</strong> points</p>
+                        <dl class="fin-stats">
+                            <div><dt>Distance</dt><dd id="fin-distance">0 m</dd></div>
+                            <div><dt>Pièces</dt><dd id="fin-pieces">0</dd></div>
+                            <div><dt>Record</dt><dd id="fin-record">0</dd></div>
+                        </dl>
+                        <div class="ecran-actions">
+                            <button type="button" class="bouton bouton-or bouton-jeu" id="btn-rejouer">Rejouer</button>
+                            <button type="button" class="bouton bouton-clair bouton-jeu" id="btn-partager">Partager mon score</button>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="jeu-bas">
-                <p class="jeu-record">Votre record : <strong id="jeu-record">0</strong><span id="jeu-message" class="jeu-message" aria-live="polite"></span></p>
-                <ul class="jeu-aide">
-                    <li><kbd>←</kbd> <kbd>→</kbd> se déplacer</li>
-                    <li><kbd>Espace</kbd> ou <kbd>↑</kbd> sauter</li>
-                    <li><kbd>↓</kbd> redescendre vite</li>
-                </ul>
+
+            <p class="jeu-record">Votre record : <strong id="jeu-record">0</strong><span id="jeu-message" class="jeu-message" aria-live="polite"></span></p>
+
+            <div class="jeu-legende">
+                <div class="legende-carte">
+                    <h3><span class="pastille pastille-or"></span>À ramasser</h3>
+                    <p>Pièces d’or (+10), série complète (+50) et boîtes mystère&nbsp;: bouclier, aimant, points ×2, vie… ou piège&nbsp;!</p>
+                </div>
+                <div class="legende-carte">
+                    <h3><span class="pastille pastille-roche"></span>À sauter</h3>
+                    <p>Rochers, buissons épineux, troncs, termitières et vautours en rase-mottes. Ceux qui volent haut&nbsp;: restez au sol.</p>
+                </div>
+                <div class="legende-carte">
+                    <h3><span class="pastille pastille-rouge"></span>Pièges</h3>
+                    <p>Pièges à loup, sables mouvants qui ralentissent, et météorites&nbsp;: une ombre rouge annonce le cratère en feu.</p>
+                </div>
             </div>
-            <ul class="jeu-legende">
-                <li><span class="pastille pastille-or"></span>Pièces : +10 points</li>
-                <li><span class="pastille pastille-boite">?</span>Boîte mystère : bouclier, points ×2, vie… ou piège !</li>
-                <li><span class="pastille pastille-rouge"></span>Météorites, pièges et sables mouvants : attention</li>
-            </ul>
         </section>
     </main>
 
@@ -83,6 +143,8 @@
     </footer>
 
     <script src="visites.js" defer></script>
+    <script src="sons.js" defer></script>
+    <script src="decor.js" defer></script>
     <script src="lion.js" defer></script>
     <script src="game.js" defer></script>
 </body>

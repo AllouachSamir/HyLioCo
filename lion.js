@@ -1,12 +1,14 @@
 /* HyLioCo — le lion du jeu
    Silhouette vectorisée (tête, crinière, corps) d'après l'illustration de la marque,
-   pattes animées et mèches dorées souples qui suivent les mouvements.
+   pattes redessinées et animées (marche, galop, bond) et mèches dorées souples
+   qui suivent les mouvements.
    Repère de dessin : boîte 207 × 136, pattes au sol à y ≈ 135, lion tourné vers la droite. */
 window.HyLion = (() => {
   'use strict';
 
   const W = 207, H = 136;
   const ANCHOR = { x: 177, y: 11 };   // racine des mèches dorées (sommet de la tête)
+  const PIVOT = { x: 100, y: 80 };    // centre de bascule du corps pendant le galop
 
   const C = {
     base: '#1F4E8C', mid: '#133B6D', dark: '#0B2A52', deep: '#061C3B',
@@ -51,36 +53,75 @@ window.HyLion = (() => {
     ctx.ellipse(A.x + 4.5, A.y + 1.5, 9.5, 5, Math.max(-0.5, Math.min(0.5, -last * 0.4)), 0, Math.PI * 2);
     ctx.fill();
   }
-  // angles : 0 = vertical, + = vers l'avant ; air (0 → 1) mélange la marche et le bond
+
+  // angles : 0 = vertical, + = vers l'avant.
+  // run (0 → 1) passe de la marche au galop ; air (0 → 1) mélange avec la pose du bond.
   const HIND_AIR = [-0.35, -1.5, -1.25], FRONT_AIR = [0.95, 1.3, 1.5];
-  function hindPose(phi, air) {
+  function angles(kind, phi, run, air) {
     const s = Math.sin(phi), lift = Math.max(0, Math.cos(phi));
-    const h = 0.28 + 0.32 * s;
-    const walk = [h, h - 0.95 - 0.35 * lift, h - 0.25 + 0.45 * lift];
-    const a = walk.map((v, i) => v + (HIND_AIR[i] - v) * air);
-    return [[26, a[0], 28, 18], [24, a[1], 18, 12], [15, a[2], 12, 10]];
+    let walk, gallop, target;
+    if (kind === 'hind') {
+      const h = 0.28 + 0.32 * s, g = 0.1 + 0.62 * s;
+      walk = [h, h - 0.95 - 0.35 * lift, h - 0.25 + 0.45 * lift];
+      gallop = [g, g - 0.95 - 0.7 * lift, g - 0.2 + 0.8 * lift];
+      target = HIND_AIR;
+    } else {
+      const h = -0.08 + 0.36 * s, g = 0.08 + 0.66 * s;
+      walk = [h, h + 0.02 - 1.0 * lift, h + 0.35 - 0.9 * lift];
+      gallop = [g, g + 0.02 - 1.4 * lift, g + 0.3 - 1.15 * lift];
+      target = FRONT_AIR;
+    }
+    return walk.map((w, i) => {
+      const v = w + (gallop[i] - w) * run;
+      return v + (target[i] - v) * air;
+    });
   }
-  function frontPose(phi, air) {
-    const s = Math.sin(phi), lift = Math.max(0, Math.cos(phi));
-    const h = -0.08 + 0.36 * s;
-    const walk = [h, h + 0.02 - 1.0 * lift, h + 0.35 - 0.9 * lift];
-    const a = walk.map((v, i) => v + (FRONT_AIR[i] - v) * air);
-    return [[16, a[0], 24, 18], [28, a[1], 18, 13], [8, a[2], 13, 12]];
-  }
+  const segsHind = a => [[26, a[0], 28, 18], [24, a[1], 18, 12], [15, a[2], 12, 10]];
+  const segsFront = a => [[16, a[0], 24, 18], [28, a[1], 18, 13], [8, a[2], 13, 12]];
   const HIP = { x: 46, y: 74 }, SHOULDER = { x: 148, y: 84 };
 
-  /** Dessine le lion (sans les mèches) à l'origine du contexte. Renvoie le balancement vertical. */
-  function drawBody(ctx, phase, air) {
+  // décalage de phase de chaque patte : marche (pas alterné) → galop (bonds)
+  const OFFSETS = {
+    walk: { hindNear: 0, frontNear: Math.PI / 2, hindFar: Math.PI, frontFar: Math.PI * 1.5 },
+    gallop: { hindNear: 0, hindFar: 0.55, frontNear: Math.PI + 0.35, frontFar: Math.PI + 0.95 },
+  };
+  const off = (k, run) => OFFSETS.walk[k] + (OFFSETS.gallop[k] - OFFSETS.walk[k]) * run;
+
+  /** Balancement vertical et bascule du corps pour une pose donnée. */
+  function pose(phase, air, run) {
+    const walkBob = Math.abs(Math.sin(phase)) * 1.5;
+    const gallopBob = 2.4 + 2.4 * Math.sin(phase - 1.1);
+    const bob = (walkBob + (gallopBob - walkBob) * run) * (1 - air);
+    const pitch = run * (1 - air) * 0.04 * Math.sin(phase + 0.5) - air * 0.05;
+    return { bob, pitch };
+  }
+
+  /** Position de la racine des mèches (repère du dessin) pour une pose donnée. */
+  function anchor(phase, air, run) {
+    const { bob, pitch } = pose(phase, air, run);
+    const dx = ANCHOR.x - PIVOT.x, dy = ANCHOR.y - PIVOT.y;
+    const c = Math.cos(pitch), s = Math.sin(pitch);
+    return { x: PIVOT.x + dx * c - dy * s, y: PIVOT.y + dx * s + dy * c - bob };
+  }
+
+  /** Dessine le lion (sans les mèches) à l'origine du contexte. */
+  function drawBody(ctx, phase, air, run) {
+    run = run || 0;
     const p = paths();
-    const bob = Math.abs(Math.sin(phase)) * 1.5 * (1 - air);
+    const { bob, pitch } = pose(phase, air, run);
     const near = ctx.createLinearGradient(0, 70, 0, 136);
     near.addColorStop(0, C.legNear); near.addColorStop(1, C.legNearLo);
     ctx.save();
     ctx.translate(0, -bob);
-    leg(ctx, HIP, hindPose(phase + Math.PI, air), C.legFar);
-    leg(ctx, SHOULDER, frontPose(phase + Math.PI * 1.5, air), C.legFar);
-    leg(ctx, HIP, hindPose(phase, air), near);
-    leg(ctx, SHOULDER, frontPose(phase + Math.PI / 2, air), near);
+    if (pitch) {
+      ctx.translate(PIVOT.x, PIVOT.y);
+      ctx.rotate(pitch);
+      ctx.translate(-PIVOT.x, -PIVOT.y);
+    }
+    leg(ctx, HIP, segsHind(angles('hind', phase + off('hindFar', run), run, air)), C.legFar);
+    leg(ctx, SHOULDER, segsFront(angles('front', phase + off('frontFar', run), run, air)), C.legFar);
+    leg(ctx, HIP, segsHind(angles('hind', phase + off('hindNear', run), run, air)), near);
+    leg(ctx, SHOULDER, segsFront(angles('front', phase + off('frontNear', run), run, air)), near);
     ctx.save();
     ctx.clip(p.clip);
     ctx.fillStyle = C.base; ctx.fill(p.base);
@@ -174,5 +215,5 @@ window.HyLion = (() => {
     }
   }
 
-  return { W, H, ANCHOR, drawBody, makeStrands, stepStrands, drawStrands };
+  return { W, H, ANCHOR, drawBody, anchor, makeStrands, stepStrands, drawStrands };
 })();
