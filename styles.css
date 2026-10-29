@@ -771,6 +771,79 @@ a {
     gap: 10px;
 }
 
+/* Record mondial : rappel à l'accueil, nom du détenteur en fin de partie */
+.ecran-mondial {
+    margin: -6px 0 18px;
+    font-size: 15px;
+    color: var(--texte-clair);
+}
+
+.ecran-mondial strong {
+    color: var(--or);
+    font-weight: 800;
+}
+
+.fin-nom {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+    max-width: 22em;
+    margin: -8px auto 12px;
+}
+
+.fin-nom[hidden] {
+    display: none;
+}
+
+.fin-nom-etat {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(247, 243, 234, 0.85);
+}
+
+.fin-nom-etat.ok {
+    color: var(--or);
+}
+
+.fin-nom-ligne {
+    display: flex;
+    gap: 8px;
+}
+
+.fin-nom input {
+    flex: 1;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 2px solid rgba(247, 243, 234, 0.45);
+    border-radius: 999px;
+    background: rgba(6, 21, 40, 0.35);
+    color: var(--ivoire);
+    font-family: var(--police);
+    font-size: 16px;
+    font-weight: 600;
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+.fin-nom input::placeholder {
+    color: rgba(247, 243, 234, 0.5);
+}
+
+.fin-nom input:focus {
+    border-color: var(--or);
+    outline: none;
+}
+
+.fin-nom .bouton {
+    min-height: 44px;
+    padding: 0 20px;
+    border: 0;
+    font-family: var(--police);
+    cursor: pointer;
+}
+
+
 /* Plein écran */
 .jeu-cadre:fullscreen {
     display: flex;
@@ -825,6 +898,10 @@ a {
 .jeu-message {
     color: var(--or-fonce);
     font-weight: 800;
+}
+
+.jeu-mondial {
+    margin-top: 8px;
 }
 
 .jeu-legende {
@@ -958,11 +1035,20 @@ a {
 
     .fin-stats {
         gap: 18px;
-        margin: 8px 0 14px;
+        margin: 6px 0 12px;
     }
 
     .fin-stats dd {
         font-size: 16px;
+    }
+
+    .ecran-mondial {
+        margin-bottom: 14px;
+        font-size: 13px;
+    }
+
+    .fin-nom {
+        margin: -2px auto 10px;
     }
 
     .ecran-actions {
@@ -1007,6 +1093,14 @@ a {
 .pied p {
     margin: 0;
     font-size: 14px;
+}
+
+.pied .pied-mention {
+    max-width: 40em;
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.5;
+    opacity: 0.8;
 }
 
 /* ---------- Mouvement réduit ---------- */

@@ -1,6 +1,7 @@
 /* HyLioCo — compteur de visiteurs.
    Chaque navigateur n'est compté qu'une fois.
-   1. Compteur du site (/api/visites) s'il est configuré sur Vercel (base Upstash reliée au projet).
+   1. Compteur du site (/api/visites) s'il est configuré sur Vercel (base Upstash reliée au projet) ;
+      il note aussi la visite dans le journal consulté sur admin.html.
    2. Sinon, compteur public gratuit Abacus (aucune configuration nécessaire).
    Si aucun ne répond, le compteur reste simplement masqué. */
 (() => {
@@ -21,7 +22,11 @@
   }
 
   const sources = [
-    () => getJSON('/api/visites', { method: nouveau ? 'POST' : 'GET' }).then(d => Number(d.visiteurs)),
+    () => getJSON('/api/visites', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nouveau }),
+    }).then(d => Number(d.visiteurs)),
     () => getJSON(`https://abacus.jasoncameron.dev/${nouveau ? 'hit' : 'get'}/hylioco-com/visiteurs`).then(d => Number(d.value)),
   ];
 

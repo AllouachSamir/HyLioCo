@@ -60,6 +60,7 @@
                     <div class="hud-centre">
                         <div class="hud-score" id="hud-score">0</div>
                         <div class="hud-record">Record <span id="hud-record">0</span></div>
+                        <div class="hud-record hud-mondial" id="hud-mondial" hidden>Mondial <span id="hud-mondial-score">0</span></div>
                     </div>
                 </div>
 
@@ -88,6 +89,7 @@
                             <li><span class="regle-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 13l6-6 6 6M6 19l6-6 6 6"/></svg></span><span><strong>Double saut</strong> : appuyez à nouveau en l’air</span></li>
                             <li><span class="regle-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M10 9v6M14 9v6M10 12h4"/></svg></span><span>Ramassez l’or et ouvrez les boîtes mystère… gare aux pièges et aux météorites&nbsp;!</span></li>
                         </ul>
+                        <p class="ecran-mondial" id="debut-mondial" hidden>Record mondial&nbsp;: <strong id="debut-mondial-score">0</strong> par <span id="debut-mondial-nom"></span></p>
                         <button type="button" class="bouton bouton-or bouton-jeu" id="btn-jouer">Jouer</button>
                     </div>
                 </div>
@@ -103,12 +105,21 @@
                     <div class="ecran-contenu">
                         <h3 class="ecran-titre">Fin de la traversée</h3>
                         <p class="fin-nouveau" id="fin-nouveau" hidden>Nouveau record&nbsp;!</p>
+                        <p class="fin-nouveau fin-mondial" id="fin-mondial" hidden>Record mondial&nbsp;!</p>
                         <p class="fin-score"><strong id="fin-score">0</strong> points</p>
                         <dl class="fin-stats">
                             <div><dt>Distance</dt><dd id="fin-distance">0 m</dd></div>
                             <div><dt>Pièces</dt><dd id="fin-pieces">0</dd></div>
                             <div><dt>Record</dt><dd id="fin-record">0</dd></div>
+                            <div id="fin-mondial-stat" hidden><dt>Mondial</dt><dd id="fin-mondial-score">0</dd></div>
                         </dl>
+                        <form class="fin-nom" id="fin-nom" hidden>
+                            <label for="fin-nom-champ" class="fin-nom-etat" id="fin-nom-etat" aria-live="polite">Votre nom au tableau d’honneur</label>
+                            <div class="fin-nom-ligne">
+                                <input type="text" id="fin-nom-champ" maxlength="20" placeholder="Anonyme" autocomplete="nickname" enterkeyhint="done" spellcheck="false">
+                                <button type="submit" class="bouton bouton-or">Valider</button>
+                            </div>
+                        </form>
                         <div class="ecran-actions">
                             <button type="button" class="bouton bouton-or bouton-jeu" id="btn-rejouer">Rejouer</button>
                             <button type="button" class="bouton bouton-clair bouton-jeu" id="btn-partager">Partager mon score</button>
@@ -118,6 +129,7 @@
             </div>
 
             <p class="jeu-record">Votre record : <strong id="jeu-record">0</strong><span id="jeu-message" class="jeu-message" aria-live="polite"></span></p>
+            <p class="jeu-record jeu-mondial" id="jeu-mondial" hidden>Record mondial : <strong id="jeu-mondial-score">0</strong> par <span id="jeu-mondial-nom"></span></p>
 
             <div class="jeu-legende">
                 <div class="legende-carte">
@@ -140,6 +152,7 @@
         <img src="assets/embleme-inverse.svg" alt="" width="36" height="40">
         <a class="pied-contact" href="mailto:contact@hylioco.com">contact@hylioco.com</a>
         <p>© 2026 HyLioCo</p>
+        <p class="pied-mention">Pour les statistiques et la sécurité, ce site enregistre l’adresse IP, la date, le pays, la ville approximative et le navigateur de chaque visite. Ces informations sont conservées 6 mois et ne sont jamais partagées. Le nom donné à un record mondial est public. Pour consulter ou effacer vos données&nbsp;: contact@hylioco.com.</p>
     </footer>
 
     <script src="visites.js" defer></script>
