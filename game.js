@@ -19,6 +19,11 @@
     btnJouer: $('btn-jouer'), btnRejouer: $('btn-rejouer'), btnPartager: $('btn-partager'), btnReprendre: $('btn-reprendre'),
     btnSon: $('btn-son'), btnPause: $('btn-pause'), btnEcran: $('btn-plein-ecran'),
     recordBas: $('jeu-record'), messageBas: $('jeu-message'),
+    mondial: $('hud-mondial'), mondialScore: $('hud-mondial-score'),
+    debutMondial: $('debut-mondial'), debutMondialScore: $('debut-mondial-score'), debutMondialNom: $('debut-mondial-nom'),
+    finMondial: $('fin-mondial'), finMondialStat: $('fin-mondial-stat'), finMondialScore: $('fin-mondial-score'),
+    finNom: $('fin-nom'), finNomChamp: $('fin-nom-champ'), finNomEtat: $('fin-nom-etat'),
+    basMondial: $('jeu-mondial'), basMondialScore: $('jeu-mondial-score'), basMondialNom: $('jeu-mondial-nom'),
   };
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -92,10 +97,18 @@
   let groups = new Map(), groupId = 0;
   let lastScoreShown = -1, lastBestShown = -1, dustTimer = 0;
   let cheatInvincible = false;
+  let triche = false;             // outils de test utilisés : plus aucun score envoyé au record mondial
 
   const KEY_BEST = 'hylioco-record';
   let best = 0;
   try { best = parseInt(localStorage.getItem(KEY_BEST), 10) || 0; } catch (e) { /* stockage indisponible */ }
+
+  // record mondial (api/record.js) : null tant que le serveur n'a pas répondu
+  const KEY_NOM = 'hylioco-nom';
+  let mondial = null, mondialAnnonce = false, lastMondialShown = -1;
+  let partie = 0, jetonNom = null;
+  let monNom = '';
+  try { monNom = localStorage.getItem(KEY_NOM) || ''; } catch (e) { /* stockage indisponible */ }
 
   const meters = () => dist / UNITS_PER_M;
   const score = () => Math.max(0, Math.floor(meters() + bonus));
@@ -349,6 +362,10 @@
     if (ui.score && s !== lastScoreShown) { ui.score.textContent = fmt(s); lastScoreShown = s; }
     const b = Math.max(best, state === 'running' || state === 'dying' ? s : 0);
     if (ui.record && b !== lastBestShown) { ui.record.textContent = fmt(b); lastBestShown = b; }
+    if (ui.mondialScore && mondial) {
+      const m = Math.max(mondial.score, state === 'running' || state === 'dying' ? s : 0);
+      if (m !== lastMondialShown) { ui.mondialScore.textContent = fmt(m); lastMondialShown = m; }
+    }
   }
   let bannerTimer = 0;
   function banner(text, kind = '') {
@@ -375,6 +392,71 @@
     if (ui.messageBas) ui.messageBas.textContent = msg || '';
   }
 
+  /* ---------- Record mondial ---------- */
+  function api(url, corps) {
+    const ctrl = window.AbortController ? new AbortController() : null;
+    const timer = ctrl && setTimeout(() => ctrl.abort(), 8000);
+    const options = corps ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corps) } : {};
+    return fetch(url, { ...options, signal: ctrl && ctrl.signal })
+      .then(async r => {
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) throw Object.assign(new Error(d.erreur || 'HTTP ' + r.status), { status: r.status });
+        return d;
+      })
+      .finally(() => clearTimeout(timer));
+  }
+  function setMondial(r) {
+    if (!r || !(r.score >= 0)) return;
+    mondial = { score: Math.floor(r.score), nom: String(r.nom || 'Anonyme') };
+    const connu = mondial.score > 0;
+    for (const el of [ui.mondial, ui.debutMondial, ui.finMondialStat, ui.basMondial]) if (el) el.hidden = !connu;
+    for (const el of [ui.debutMondialScore, ui.finMondialScore, ui.basMondialScore]) if (el) el.textContent = fmt(mondial.score);
+    for (const el of [ui.debutMondialNom, ui.basMondialNom]) if (el) el.textContent = mondial.nom;
+    lastMondialShown = -1;
+    renderScore();
+  }
+  function chargerMondial() {
+    if (window.fetch) api('/api/record').then(setMondial).catch(() => { /* record mondial indisponible : rien à afficher */ });
+  }
+  function etatNom(texte, ok) {
+    ui.finNomEtat.textContent = texte;
+    ui.finNomEtat.classList.toggle('ok', !!ok);
+  }
+  function envoyerScore(s) {
+    const numero = partie;
+    const corps = { score: s, distance: Math.floor(meters()), pieces: coinCount, duree: Math.round(runTime * 10) / 10, nom: monNom };
+    api('/api/record', corps).then(r => {
+      setMondial(r.record);
+      if (!r.battu || numero !== partie || state !== 'over') return;
+      jetonNom = r.jeton;
+      if (ui.finNouveau) ui.finNouveau.hidden = true;
+      if (ui.finMondial) ui.finMondial.hidden = false;
+      if (ui.finNom) {
+        ui.finNomChamp.value = monNom;
+        if (monNom) etatNom(`Record enregistré au nom de ${mondial.nom}.`, true);
+        else etatNom('Votre nom au tableau d’honneur');
+        ui.finNom.hidden = false;
+      }
+      showBestBelow(' — Record mondial !');
+      sons.play('palier');
+    }).catch(() => { /* score non envoyé : la partie reste comptée en local */ });
+  }
+  function nommerRecord(e) {
+    e.preventDefault();
+    if (!jetonNom) return;
+    const nom = ui.finNomChamp.value.trim();
+    etatNom('Enregistrement…');
+    api('/api/record', { jeton: jetonNom, nom }).then(r => {
+      monNom = nom;
+      try { localStorage.setItem(KEY_NOM, nom); } catch (err) { /* ignore */ }
+      setMondial(r.record);
+      etatNom(`Record enregistré au nom de ${mondial.nom}.`, true);
+      ui.finNomChamp.blur();
+    }).catch(err => {
+      etatNom(err.status === 403 ? 'Trop tard : ce record ne peut plus être renommé.' : 'Envoi impossible, réessayez.');
+    });
+  }
+
   /* ---------- Déroulement d'une partie ---------- */
   function startGame() {
     sons.unlock();
@@ -387,12 +469,14 @@
     effects = {}; groups = new Map();
     speed = baseSpeed();
     nextPattern = 360; level = 0; lastPhase = 0; milestone = 0; recordAnnounced = false;
+    partie++; mondialAnnonce = false; jetonNom = null;
     invulnUntil = 0; shakeUntil = 0; flashUntil = 0; hitStop = 0;
     jumpHeld = false; jumpBuffer = 0; downHeld = false;
-    shownLives = -1; lastScoreShown = -1; lastBestShown = -1;
+    shownLives = -1; lastScoreShown = -1; lastBestShown = -1; lastMondialShown = -1;
     renderLives(); renderCoins(); renderEffects(); renderScore();
     showScreen(null);
     showBestBelow();
+    chargerMondial();
     canvas.focus({ preventScroll: true });
     start();
   }
@@ -432,9 +516,12 @@
     if (ui.finPieces) ui.finPieces.textContent = coinCount;
     if (ui.finRecord) ui.finRecord.textContent = fmt(best);
     if (ui.finNouveau) ui.finNouveau.hidden = !isRecord;
+    if (ui.finMondial) ui.finMondial.hidden = true;
+    if (ui.finNom) ui.finNom.hidden = true;
     showBestBelow(isRecord ? ' — Nouveau record !' : '');
     renderScore();
     showScreen('fin');
+    if (mondial && s > mondial.score && !triche) envoyerScore(s);
   }
 
   let onHurt = null;   // outil de test
@@ -594,6 +681,11 @@
         milestone = Math.floor(s / 1000);
         banner(fmt(milestone * 1000) + ' points !', 'bon');
         sons.play('palier');
+      }
+      if (!mondialAnnonce && mondial && mondial.score > 0 && s > mondial.score) {
+        mondialAnnonce = recordAnnounced = true;
+        banner('Record mondial battu !', 'bon');
+        sons.play('serie');
       }
       if (!recordAnnounced && best > 0 && s > best) {
         recordAnnounced = true;
@@ -1280,6 +1372,7 @@
   if (ui.btnJouer) ui.btnJouer.addEventListener('click', () => startGame());
   if (ui.btnRejouer) ui.btnRejouer.addEventListener('click', () => startGame());
   if (ui.btnReprendre) ui.btnReprendre.addEventListener('click', () => resumeGame());
+  if (ui.finNom) ui.finNom.addEventListener('submit', nommerRecord);
   if (ui.btnPause) ui.btnPause.addEventListener('click', () => { if (state === 'running') pauseGame(); else if (state === 'paused') resumeGame(); });
   function setPauseIcon(paused) {
     if (!ui.btnPause) return;
@@ -1319,7 +1412,9 @@
   }
   if (ui.btnPartager) {
     ui.btnPartager.addEventListener('click', async () => {
-      const text = `J’ai marqué ${fmt(lastScore)} points dans « La traversée du lion » de HyLioCo. Saurez-vous faire mieux ?`;
+      const text = jetonNom
+        ? `J’ai battu le record mondial avec ${fmt(lastScore)} points dans « La traversée du lion » de HyLioCo. Saurez-vous faire mieux ?`
+        : `J’ai marqué ${fmt(lastScore)} points dans « La traversée du lion » de HyLioCo. Saurez-vous faire mieux ?`;
       const url = 'https://hylioco.com/#jeu';
       try {
         if (navigator.share) { await navigator.share({ title: 'HyLioCo — La traversée du lion', text, url }); return; }
@@ -1350,11 +1445,11 @@
       get level() { return level; }, get effects() { return effects; },
       LION_S, LION_W, LION_H, lionBoxes, obstacleBox, meteorPos,
       press: pressJump, release: releaseJump, start: startGame,
-      step(dt) { update(dt); }, draw,
-      invincible(v) { cheatInvincible = v; },
-      setLives(v) { lives = v; },
+      step(dt) { triche = true; update(dt); }, draw,
+      invincible(v) { triche = true; cheatInvincible = v; },
+      setLives(v) { triche = true; lives = v; },
       onHurt(fn) { onHurt = fn; },
-      setTod(v) { dist = (((v - 0.03) % 1 + 1) % 1) * 2600 * UNITS_PER_M; },
+      setTod(v) { triche = true; dist = (((v - 0.03) % 1 + 1) % 1) * 2600 * UNITS_PER_M; },
     };
   }
 
@@ -1363,5 +1458,6 @@
   showScreen('debut');
   showBestBelow();
   renderLives(); renderCoins(); renderScore();
+  chargerMondial();
   new ResizeObserver(resize).observe(canvas);
 })();

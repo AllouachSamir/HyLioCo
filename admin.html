@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration — HyLioCo</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0A2342">
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .admin-tete {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            padding: 28px 20px;
+            background: var(--marine);
+            color: var(--ivoire);
+        }
+        .admin-tete h1 { margin: 0; font-size: 24px; font-weight: 800; }
+        .admin { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
+        .admin [hidden] { display: none !important; }
+        .bloc {
+            margin-bottom: 18px;
+            padding: 18px;
+            border-radius: var(--rayon);
+            background: #fff;
+            border: 1px solid rgba(10, 35, 66, 0.08);
+            box-shadow: var(--ombre);
+        }
+        .bloc h2 { margin: 0 0 12px; font-size: 18px; font-weight: 800; }
+        .connexion { max-width: 420px; margin: 24px auto; }
+        .connexion label { display: block; margin-bottom: 6px; font-weight: 600; }
+        .champ {
+            width: 100%;
+            min-height: 48px;
+            padding: 0 16px;
+            border: 2px solid rgba(10, 35, 66, 0.2);
+            border-radius: 999px;
+            font: 600 16px var(--police);
+            color: var(--marine);
+            background: var(--ivoire);
+        }
+        .champ:focus { border-color: var(--or); outline: none; }
+        .case { display: flex; align-items: center; gap: 8px; margin: 12px 0 16px; font-size: 15px; }
+        .bouton-admin { border: 0; font-family: var(--police); cursor: pointer; }
+        .bouton-trait {
+            min-height: 40px;
+            padding: 8px 16px;
+            border: 2px solid rgba(10, 35, 66, 0.2);
+            background: transparent;
+            color: var(--marine);
+            font-size: 15px;
+        }
+        .bouton-trait:hover { border-color: var(--marine); }
+        .bouton-trait[aria-pressed="true"] { background: var(--marine); border-color: var(--marine); color: var(--ivoire); }
+        .bouton-danger { border-color: rgba(201, 60, 60, 0.45); color: #A32F2F; }
+        .bouton-danger:hover { border-color: #C93C3C; }
+        .erreur { margin: 12px 0 0; color: #A32F2F; font-weight: 600; }
+        .erreur:empty { display: none; }
+        .barre { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+        .barre .espace { flex: 1; }
+        .chiffres { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 18px; }
+        .chiffre { padding: 14px 16px; border-radius: 14px; background: var(--marine); color: var(--ivoire); }
+        .chiffre strong { display: block; font-size: 28px; font-weight: 800; line-height: 1.1; color: var(--or); font-variant-numeric: tabular-nums; }
+        .chiffre span { font-size: 14px; color: var(--texte-clair); }
+        .record-infos { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px 18px; margin: 0 0 14px; }
+        .record-infos dt { font-size: 13px; color: var(--texte-doux); }
+        .record-infos dd { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
+        .vide { margin: 0; color: var(--texte-doux); }
+        .jour { margin: 18px 0 8px; font-size: 15px; font-weight: 800; color: var(--texte-doux); }
+        .jour:first-child { margin-top: 0; }
+        .lignes { margin: 0; padding: 0; list-style: none; }
+        .ligne {
+            display: grid;
+            grid-template-columns: 70px minmax(130px, 1.2fr) 1.2fr 1fr;
+            gap: 4px 14px;
+            align-items: baseline;
+            padding: 10px 0;
+            border-top: 1px solid rgba(10, 35, 66, 0.08);
+            font-size: 15px;
+        }
+        .lignes-ip .ligne { grid-template-columns: minmax(130px, 1.2fr) 1.2fr 1fr 90px; }
+        .ip { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; font-weight: 700; overflow-wrap: anywhere; user-select: all; }
+        .doux { color: var(--texte-doux); }
+        .badge { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: rgba(245, 183, 0, 0.22); color: var(--marine); font-size: 12px; font-weight: 700; }
+        @media (max-width: 640px) {
+            .ligne, .lignes-ip .ligne { grid-template-columns: auto 1fr; }
+            .ligne > :nth-child(n+3) { grid-column: 1 / -1; font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="admin-tete">
+        <img src="assets/embleme-inverse.svg" alt="" width="34" height="38">
+        <h1>Administration</h1>
+    </header>
+
+    <main class="admin">
+        <form class="bloc connexion" id="connexion">
+            <label for="cle">Clé d’accès</label>
+            <input class="champ" type="password" id="cle" autocomplete="current-password" required>
+            <label class="case"><input type="checkbox" id="retenir" checked> Se souvenir de la clé sur cet appareil</label>
+            <button type="submit" class="bouton bouton-or bouton-admin">Ouvrir</button>
+            <p class="erreur" id="erreur-connexion" role="alert"></p>
+        </form>
+
+        <div id="tableau" hidden>
+            <div class="barre">
+                <button type="button" class="bouton bouton-trait bouton-admin" data-jours="1">Aujourd’hui</button>
+                <button type="button" class="bouton bouton-trait bouton-admin" data-jours="7">7 jours</button>
+                <button type="button" class="bouton bouton-trait bouton-admin" data-jours="30">30 jours</button>
+                <button type="button" class="bouton bouton-trait bouton-admin" data-jours="183">6 mois</button>
+                <span class="espace"></span>
+                <button type="button" class="bouton bouton-trait bouton-admin" id="actualiser">Actualiser</button>
+                <button type="button" class="bouton bouton-trait bouton-admin" id="csv">Télécharger (CSV)</button>
+                <button type="button" class="bouton bouton-trait bouton-admin" id="deconnexion">Se déconnecter</button>
+            </div>
+            <p class="erreur" id="erreur" role="alert"></p>
+
+            <div class="chiffres">
+                <div class="chiffre"><strong id="n-visiteurs">0</strong><span>visiteurs depuis le début</span></div>
+                <div class="chiffre"><strong id="n-visites">0</strong><span>visites sur la période</span></div>
+                <div class="chiffre"><strong id="n-ip">0</strong><span>adresses IP différentes</span></div>
+            </div>
+
+            <section class="bloc">
+                <h2>Record mondial</h2>
+                <p class="vide" id="record-vide">Aucun record pour l’instant.</p>
+                <div id="record" hidden>
+                    <dl class="record-infos">
+                        <div><dt>Score</dt><dd id="r-score"></dd></div>
+                        <div><dt>Nom</dt><dd id="r-nom"></dd></div>
+                        <div><dt>Date</dt><dd id="r-date"></dd></div>
+                        <div><dt>Adresse IP</dt><dd class="ip" id="r-ip"></dd></div>
+                        <div><dt>Distance</dt><dd id="r-distance"></dd></div>
+                        <div><dt>Pièces</dt><dd id="r-pieces"></dd></div>
+                        <div><dt>Durée de la partie</dt><dd id="r-duree"></dd></div>
+                    </dl>
+                    <button type="button" class="bouton bouton-trait bouton-danger bouton-admin" id="effacer">Effacer ce record</button>
+                </div>
+            </section>
+
+            <section class="bloc">
+                <div class="barre">
+                    <button type="button" class="bouton bouton-trait bouton-admin" data-vue="visites">Toutes les visites</button>
+                    <button type="button" class="bouton bouton-trait bouton-admin" data-vue="ip">Par adresse IP</button>
+                </div>
+                <div id="liste"></div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+    (() => {
+        'use strict';
+        const $ = id => document.getElementById(id);
+        const CLE = 'hylioco-cle-admin';
+        let cle = '';
+        let jours = 7, vue = 'visites', donnees = null;
+        try { cle = localStorage.getItem(CLE) || ''; } catch (e) { /* stockage indisponible */ }
+
+        const nombre = n => Number(n || 0).toLocaleString('fr-FR');
+        const dateHeure = ms => new Date(ms).toLocaleString('fr-FR', { timeZone: 'Europe/Paris', dateStyle: 'short', timeStyle: 'medium' });
+        const heure = ms => new Date(ms).toLocaleTimeString('fr-FR', { timeZone: 'Europe/Paris' });
+        const jourLong = j => new Date(j + 'T12:00:00Z').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        let regions = null;
+        try { regions = new Intl.DisplayNames(['fr'], { type: 'region' }); } catch (e) { /* noms de pays indisponibles */ }
+        function lieu(v) {
+            let pays = v.pays || '';
+            try { if (pays && regions) pays = regions.of(pays); } catch (e) { /* code inconnu */ }
+            return [v.ville, pays].filter(Boolean).join(', ') || 'Lieu inconnu';
+        }
+        function appareil(ua) {
+            ua = ua || '';
+            if (/bot|crawl|spider|slurp|preview|facebookexternalhit|curl|wget|python|headless/i.test(ua)) return 'Robot';
+            const os = /Android/i.test(ua) ? 'Android' : /iPhone|iPod/i.test(ua) ? 'iPhone' : /iPad/i.test(ua) ? 'iPad'
+                : /Windows/i.test(ua) ? 'Windows' : /CrOS/i.test(ua) ? 'ChromeOS' : /Mac OS X|Macintosh/i.test(ua) ? 'Mac' : /Linux/i.test(ua) ? 'Linux' : '';
+            const nav = /Edg\//.test(ua) ? 'Edge' : /SamsungBrowser/.test(ua) ? 'Samsung Internet' : /OPR\/|Opera/.test(ua) ? 'Opera'
+                : /Firefox\/|FxiOS/.test(ua) ? 'Firefox' : /Chrome\/|CriOS/.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : '';
+            return [nav, os].filter(Boolean).join(' · ') || 'Inconnu';
+        }
+        function el(tag, classe, texte) {
+            const e = document.createElement(tag);
+            if (classe) e.className = classe;
+            if (texte !== undefined) e.textContent = texte;
+            return e;
+        }
+
+        async function appeler(options) {
+            const r = await fetch('/api/journal' + (options ? '' : '?jours=' + jours), {
+                cache: 'no-store',
+                ...options,
+                headers: { Authorization: 'Bearer ' + cle, 'Content-Type': 'application/json' },
+            });
+            const d = await r.json().catch(() => ({}));
+            if (!r.ok) throw Object.assign(new Error(d.erreur || 'Erreur ' + r.status), { status: r.status });
+            return d;
+        }
+
+        async function charger() {
+            $('erreur').textContent = '';
+            try {
+                donnees = await appeler();
+                $('connexion').hidden = true;
+                $('tableau').hidden = false;
+                afficher();
+            } catch (e) {
+                if (e.status === 401 || e.status === 429) {
+                    deconnecter();
+                    $('erreur-connexion').textContent = e.message;
+                } else if ($('tableau').hidden) {
+                    $('erreur-connexion').textContent = e.message;
+                } else {
+                    $('erreur').textContent = e.message;
+                }
+            }
+        }
+
+        function toutesLesVisites() {
+            return donnees.jours.flatMap(j => j.visites);
+        }
+
+        function afficher() {
+            for (const b of document.querySelectorAll('[data-jours]')) b.setAttribute('aria-pressed', String(Number(b.dataset.jours) === jours));
+            for (const b of document.querySelectorAll('[data-vue]')) b.setAttribute('aria-pressed', String(b.dataset.vue === vue));
+            const visites = toutesLesVisites();
+            $('n-visiteurs').textContent = nombre(donnees.visiteurs);
+            $('n-visites').textContent = nombre(visites.length);
+            $('n-ip').textContent = nombre(new Set(visites.map(v => v.ip)).size);
+
+            const r = donnees.record;
+            $('record').hidden = !r;
+            $('record-vide').hidden = !!r;
+            if (r) {
+                $('r-score').textContent = nombre(r.score) + ' points';
+                $('r-nom').textContent = r.nom || 'Anonyme';
+                $('r-date').textContent = dateHeure(Number(r.date));
+                $('r-ip').textContent = r.ip || '—';
+                $('r-distance').textContent = nombre(r.distance) + ' m';
+                $('r-pieces').textContent = nombre(r.pieces);
+                const s = Number(r.duree) || 0;
+                $('r-duree').textContent = Math.floor(s / 60) + ' min ' + String(Math.round(s % 60)).padStart(2, '0') + ' s';
+            }
+
+            const liste = $('liste');
+            liste.replaceChildren();
+            if (!visites.length) {
+                liste.append(el('p', 'vide', 'Aucune visite sur la période.'));
+                return;
+            }
+            if (vue === 'ip') return afficherParIp(liste, visites);
+            for (const j of donnees.jours) {
+                if (!j.visites.length) continue;
+                liste.append(el('h3', 'jour', jourLong(j.date) + ' — ' + nombre(j.visites.length) + ' visite' + (j.visites.length > 1 ? 's' : '')));
+                const ul = el('ul', 'lignes');
+                for (const v of j.visites) {
+                    const li = el('li', 'ligne');
+                    li.append(el('span', 'doux', heure(v.d)));
+                    const ip = el('span', 'ip', v.ip);
+                    if (v.nouveau) ip.append(el('span', 'badge', 'nouveau'));
+                    li.append(ip, el('span', '', lieu(v)));
+                    const nav = el('span', 'doux', appareil(v.nav));
+                    nav.title = v.nav || '';
+                    li.append(nav);
+                    ul.append(li);
+                }
+                liste.append(ul);
+            }
+        }
+
+        function afficherParIp(liste, visites) {
+            const parIp = new Map();
+            for (const v of visites) {
+                const g = parIp.get(v.ip);
+                if (g) { g.n++; continue; }
+                parIp.set(v.ip, { v, n: 1 });          // visites du plus récent au plus ancien
+            }
+            const ul = el('ul', 'lignes lignes-ip');
+            for (const { v, n } of parIp.values()) {
+                const li = el('li', 'ligne');
+                li.append(el('span', 'ip', v.ip), el('span', '', lieu(v)));
+                const nav = el('span', 'doux', appareil(v.nav) + ' · ' + dateHeure(v.d));
+                nav.title = v.nav || '';
+                li.append(nav, el('span', 'doux', n + ' visite' + (n > 1 ? 's' : '')));
+                ul.append(li);
+            }
+            liste.append(ul);
+        }
+
+        function telechargerCsv() {
+            const champ = x => '"' + String(x == null ? '' : x).replace(/"/g, '""') + '"';
+            const lignes = [['date', 'ip', 'pays', 'region', 'ville', 'navigateur', 'nouveau visiteur'].join(';')];
+            for (const v of toutesLesVisites()) {
+                lignes.push([dateHeure(v.d), v.ip, v.pays, v.region, v.ville, v.nav, v.nouveau ? 'oui' : 'non'].map(champ).join(';'));
+            }
+            const lien = document.createElement('a');
+            lien.href = URL.createObjectURL(new Blob(['﻿' + lignes.join('\r\n')], { type: 'text/csv;charset=utf-8' }));
+            lien.download = 'hylioco-visites-' + donnees.jours[0].date + '.csv';
+            lien.click();
+            setTimeout(() => URL.revokeObjectURL(lien.href), 1000);
+        }
+
+        function deconnecter() {
+            cle = '';
+            try { localStorage.removeItem(CLE); } catch (e) { /* ignore */ }
+            $('tableau').hidden = true;
+            $('connexion').hidden = false;
+            $('cle').value = '';
+        }
+
+        $('connexion').addEventListener('submit', e => {
+            e.preventDefault();
+            cle = $('cle').value;
+            $('erreur-connexion').textContent = '';
+            try {
+                if ($('retenir').checked) localStorage.setItem(CLE, cle);
+                else localStorage.removeItem(CLE);
+            } catch (err) { /* ignore */ }
+            charger();
+        });
+        for (const b of document.querySelectorAll('[data-jours]')) {
+            b.addEventListener('click', () => { jours = Number(b.dataset.jours); charger(); });
+        }
+        for (const b of document.querySelectorAll('[data-vue]')) {
+            b.addEventListener('click', () => { vue = b.dataset.vue; afficher(); });
+        }
+        $('actualiser').addEventListener('click', charger);
+        $('csv').addEventListener('click', telechargerCsv);
+        $('deconnexion').addEventListener('click', deconnecter);
+        $('effacer').addEventListener('click', async () => {
+            if (!confirm('Effacer le record mondial ? Le prochain meilleur score le remplacera.')) return;
+            try {
+                await appeler({ method: 'POST', body: JSON.stringify({ action: 'effacer-record' }) });
+                charger();
+            } catch (e) {
+                $('erreur').textContent = e.message;
+            }
+        });
+
+        if (cle) charger();
+    })();
+    </script>
+</body>
+</html>
